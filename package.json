@@ -39,7 +39,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/joobypm/fix-md-tables"
+    "url": "https://github.com/JoobyPM/fix-md-tables"
   },
   "engines": {
     "node": ">=18"
