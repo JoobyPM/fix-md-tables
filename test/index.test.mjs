@@ -130,14 +130,20 @@ describe("splitCellContent", () => {
 
 describe("compensateRegularCell", () => {
   it("adds ideographic spaces and removes equivalent trailing spaces", () => {
-    // 2 ideographic spaces = 4 columns, so remove 4 trailing spaces
+    // 5 trailing spaces, compensation=2, needs 4 spaces, leaves 1
     const result = compensateRegularCell(" Text     ", 2);
     expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE} `);
   });
 
-  it("removes all trailing spaces if not enough", () => {
-    // Only 1 trailing space, but need to remove 4 (compensation=2, 2*2=4)
+  it("caps compensation to available trailing spaces", () => {
+    // Only 1 trailing space = floor(1/2) = 0 ideographic spaces possible
     const result = compensateRegularCell(" Text ", 2);
+    expect(result).toBe(" Text ");
+  });
+
+  it("removes all trailing and adds full compensation when not enough room", () => {
+    // 3 trailing spaces < compensation*2=4, so remove all and add full compensation
+    const result = compensateRegularCell(" Text   ", 2);
     expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}`);
   });
 });
@@ -145,9 +151,10 @@ describe("compensateRegularCell", () => {
 describe("processCell", () => {
   it("compensates cells with fewer emoji than max", () => {
     const maxEmojiPerCol = [2, 1];
-    // Only 1 trailing space, compensation=2 removes 4 spaces, so no trailing space left
-    const result = processCell(" Text ", 0, false, maxEmojiPerCol);
-    expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}`);
+    // Formula: base=min(2, max-1)=1, comp=1+2-0=3
+    // 5 trailing spaces < 3*2=6, so remove all and add 3 ideographic
+    const result = processCell(" Text     ", 0, false, maxEmojiPerCol);
+    expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}`);
   });
 
   it("leaves cells with max emoji unchanged", () => {
@@ -171,12 +178,13 @@ describe("buildTableRow", () => {
 
 describe("processTable", () => {
   it("processes a table with emoji", () => {
-    const tableRows = ["| Header | Header |", "| --- | --- |", "| 🌟 | Text |"];
+    // Each cell has enough trailing spaces for compensation
+    const tableRows = ["| Header   | Header |", "| ---   | --- |", "| 🌟 | Text |"];
     const result = processTable(tableRows);
 
-    // compensation=1, removes 2 trailing spaces, only 1 exists, so none left
-    expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE}| Header |`);
-    expect(result[1]).toBe(`| -${IDEOGRAPHIC_SPACE}| --- |`);
+    // Col 0: max emoji=1, header needs 1 compensation, 3 trailing spaces → 1 ideographic
+    expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE} | Header |`);
+    expect(result[1]).toBe(`| -${IDEOGRAPHIC_SPACE} | --- |`);
     expect(result[2]).toBe("| 🌟 | Text |");
   });
 
@@ -341,21 +349,110 @@ Some paragraph with ${IDEOGRAPHIC_SPACE} space.`;
 
 describe("integration: real-world table", () => {
   it("fixes a typical emoji status table", () => {
-    const input = `| Status | Meaning     |
-| ------ | ----------- |
-| ✅     | Complete    |
-| 🚧     | In Progress |
-| ❌     | Failed      |`;
+    // Header cell "Status  " has 2 trailing spaces → floor(2/2) = 1 ideographic space possible
+    const input = `| Status  | Meaning     |
+| ------  | ----------- |
+| ✅      | Complete    |
+| 🚧      | In Progress |
+| ❌      | Failed      |`;
 
     const result = fixTableAlignment(input);
     const lines = result.split("\n");
 
-    // Header should have compensation
+    // Header should have compensation (1 ideographic space in Status column)
     expect(lines[0]).toContain(IDEOGRAPHIC_SPACE);
 
     // Data rows with emoji should NOT have compensation
-    expect(lines[2]).toBe("| ✅     | Complete    |");
-    expect(lines[3]).toBe("| 🚧     | In Progress |");
-    expect(lines[4]).toBe("| ❌     | Failed      |");
+    expect(lines[2]).toBe("| ✅      | Complete    |");
+    expect(lines[3]).toBe("| 🚧      | In Progress |");
+    expect(lines[4]).toBe("| ❌      | Failed      |");
+  });
+
+  it("handles table with varying emoji counts per column", () => {
+    // Formula: compensation = base + (max - cell), base = min(2, max-1)
+    // For 0-emoji cells with max>2: cap at max-1
+    const input = `| Col1   | Col2        |
+| ------ | ----------- |
+| ✅     | Text        |
+| Text   | 🔴 🟡 🟢    |`;
+
+    const result = fixTableAlignment(input);
+    const lines = result.split("\n");
+
+    // Col1: max=1, base=0, header(0): 0+1-0=1
+    // Col2: max=3, base=2, header(0): 2+3-0=5, cap at 2 (0-emoji, max>2)
+    // Total: 1 + 2 = 3
+    expect(countIdeographicSpaces(lines[0])).toBe(3);
+
+    // Data row 1: Col1 has ✅ (base=0, 0+1-1=0), Col2 has 0 emoji (2+3-0=5, cap at 2)
+    expect(countIdeographicSpaces(lines[2])).toBe(2);
+
+    // Data row 2: Col1 has 0 emoji (0+1-0=1), Col2 has 🔴🟡🟢 (2+3-3=2)
+    expect(countIdeographicSpaces(lines[3])).toBe(3); // 1 + 2
+  });
+
+  it("row with max emoji gets zero compensation", () => {
+    // The row with the MOST emoji in a column gets 0 ideographic spaces for that column
+    const input = `| Status   | Icons       |
+| -------- | ----------- |
+| ✅ Done  | 🔴 🟡 🟢 🔵 ⚪ |
+| Pending  | 🔴          |`;
+
+    const result = fixTableAlignment(input);
+    const lines = result.split("\n");
+
+    // Row with max emoji (5) in Icons column should have 0 compensation for that column
+    // But Status column still needs compensation (max=1, row has 0)
+    const maxEmojiRow = lines[2]; // "| ✅ Done  | 🔴 🟡 🟢 🔵 ⚪ |"
+
+    // Count ideographic spaces - should only be for Status column compensation
+    // Status: max=1, this row has 1 → 0 compensation
+    // Icons: max=5, this row has 5 → 0 compensation
+    expect(countIdeographicSpaces(maxEmojiRow)).toBe(0);
+  });
+
+  it("fixes table with mixed emoji count in different rows and columns", () => {
+    const input = `| Macro               | Status        | Conversion                                    |
+| ------------------- | ------------- | --------------------------------------------- |
+| **"info"**          | ✅ Supported  | Blockquote with ℹ️ Info prefix                |
+| **"warning"**       | ✅ Supported  | Blockquote with ⚠️ Warning prefix             |
+| **"note"**          | ✅ Supported  | Blockquote with 📝 Note prefix                |
+| **"tip"**           | ✅ Supported  | Blockquote with 💡 Tip prefix                 |
+| **"code"**          | ✅ Supported  | Markdown code blocks with syntax highlighting |
+| **"mermaid-cloud"** | ✅ Supported  | Mermaid code blocks                           |
+| **"expand"**        | ✅ Supported  | Content extracted and rendered directly       |
+| **"details"**       | ✅ Supported  | Content extracted and rendered directly       |
+| **"status"**        | ✅ Supported  | Emoji badges (🔴 🟡 🟢 🔵 ⚪)                 |
+| **"toc"**           | ⚠️ Partial    | "<!-- Table of Contents -->" comment          |
+| **"children"**      | ⚠️ Partial    | "<!-- Child Pages -->" comment                |
+| **Other macros**    | 📋 On request | "<!-- Unsupported macro: {name} -->" comments |`;
+
+    /* eslint-disable no-irregular-whitespace */
+    // Expected: compensation = base + (max - cell), where base = min(2, max - 1)
+    // - Status column (max=1): header gets 1 ideographic space
+    // - Conversion column (max=5): 0-emoji cells get 4, 1-emoji get 6, 5-emoji get 2
+    const expected = `| Macro               | Status　      | Conversion　　　　                            |
+| ------------------- | -----------　| -------------------------------------　　　　|
+| **"info"**          | ✅ Supported  | Blockquote with ℹ️ Info prefix　　　　　　    |
+| **"warning"**       | ✅ Supported  | Blockquote with ⚠️ Warning prefix　　　　　　 |
+| **"note"**          | ✅ Supported  | Blockquote with 📝 Note prefix　　　　　　    |
+| **"tip"**           | ✅ Supported  | Blockquote with 💡 Tip prefix　　　　　　     |
+| **"code"**          | ✅ Supported  | Markdown code blocks with syntax highlighting |
+| **"mermaid-cloud"** | ✅ Supported  | Mermaid code blocks　　　　                   |
+| **"expand"**        | ✅ Supported  | Content extracted and rendered directly　　　　|
+| **"details"**       | ✅ Supported  | Content extracted and rendered directly　　　　|
+| **"status"**        | ✅ Supported  | Emoji badges (🔴 🟡 🟢 🔵 ⚪)　　             |
+| **"toc"**           | ⚠️ Partial    | "<!-- Table of Contents -->" comment　　　　  |
+| **"children"**      | ⚠️ Partial    | "<!-- Child Pages -->" comment　　　　        |
+| **Other macros**    | 📋 On request | "<!-- Unsupported macro: {name} -->" comments |`;
+    /* eslint-enable no-irregular-whitespace */
+
+    const result = fixTableAlignment(input);
+    expect(result).toBe(expected);
   });
 });
+
+/** Helper to count ideographic spaces in a string */
+function countIdeographicSpaces(str) {
+  return (str.match(/\u3000/g) || []).length;
+}
