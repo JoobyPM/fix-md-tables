@@ -1,0 +1,19 @@
+# Build artifacts
+bin/
+dist/
+build/
+coverage.out
+coverage.html
+
+# Dependencies
+node_modules/
+vendor/
+
+# Generated code
+docs/api/
+*.gen.go
+*.pb.go
+
+# Cache
+.cache/
+.go/
