@@ -128,17 +128,25 @@ describe("splitCellContent", () => {
 });
 
 describe("compensateRegularCell", () => {
-  it("adds ideographic spaces before trailing whitespace", () => {
-    const result = compensateRegularCell(" Text ", 2);
+  it("adds ideographic spaces and removes equivalent trailing spaces", () => {
+    // 2 ideographic spaces = 4 columns, so remove 4 trailing spaces
+    const result = compensateRegularCell(" Text     ", 2);
     expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE} `);
+  });
+
+  it("removes all trailing spaces if not enough", () => {
+    // Only 1 trailing space, but need to remove 4 (compensation=2, 2*2=4)
+    const result = compensateRegularCell(" Text ", 2);
+    expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}`);
   });
 });
 
 describe("processCell", () => {
   it("compensates cells with fewer emoji than max", () => {
     const maxEmojiPerCol = [2, 1];
+    // Only 1 trailing space, compensation=2 removes 4 spaces, so no trailing space left
     const result = processCell(" Text ", 0, false, maxEmojiPerCol);
-    expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE} `);
+    expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}`);
   });
 
   it("leaves cells with max emoji unchanged", () => {
@@ -165,7 +173,8 @@ describe("processTable", () => {
     const tableRows = ["| Header | Header |", "| --- | --- |", "| 🌟 | Text |"];
     const result = processTable(tableRows);
 
-    expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE} | Header |`);
+    // compensation=1, removes 2 trailing spaces, only 1 exists, so none left
+    expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE}| Header |`);
     expect(result[1]).toBe(`| -${IDEOGRAPHIC_SPACE} | --- |`);
     expect(result[2]).toBe("| 🌟 | Text |");
   });
@@ -180,8 +189,8 @@ describe("processTable", () => {
     const tableRows = [`| Header${IDEOGRAPHIC_SPACE} | Header |`, "| --- | --- |", "| 🌟 | Text |"];
     const result = processTable(tableRows);
 
-    // Should be re-processed cleanly
-    expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE} | Header |`);
+    // Should be re-processed cleanly (after stripping, same as above)
+    expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE}| Header |`);
   });
 });
 
