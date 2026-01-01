@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.3
+
+[compare changes](https://github.com/JoobyPM/fix-md-tables/compare/v1.1.2...v1.1.3)
+
+### 🩹 Fixes
+
+- Normalize existing ideographic spaces to prevent double-compensation ([1c645e4](https://github.com/JoobyPM/fix-md-tables/commit/1c645e4))
+
+### ❤️ Contributors
+
+- Pavel Marakhovskyy ([@JoobyPM](https://github.com/JoobyPM))
+
 ## v1.1.2
 
 [compare changes](https://github.com/JoobyPM/fix-md-tables/compare/v1.1.1...v1.1.2)
