@@ -15,7 +15,8 @@
     "lib"
   ],
   "scripts": {
-    "format": "prettier --write .",
+    "check": "pnpm run format && pnpm run lint && pnpm run test",
+    "format": "prettier --write . && node bin/fix-md-tables.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",

@@ -240,6 +240,47 @@ const x = 1;
     const result = fixTableAlignment(content);
     expect(result).toBe(content);
   });
+
+  it("skips tables inside fenced code blocks", () => {
+    const content = `# Example
+
+\`\`\`markdown
+| Status | Description |
+| ------ | ----------- |
+| ✅     | Complete    |
+\`\`\`
+
+Some text.`;
+
+    const result = fixTableAlignment(content);
+    // Should NOT add ideographic spaces to table inside code block
+    expect(result).toBe(content);
+  });
+
+  it("skips tables inside tilde code blocks", () => {
+    const content = `~~~md
+| A | B |
+| - | - |
+| 🌟 | X |
+~~~`;
+
+    const result = fixTableAlignment(content);
+    expect(result).toBe(content);
+  });
+
+  it("processes tables after code blocks", () => {
+    const content = `\`\`\`
+code
+\`\`\`
+
+| A | B |
+| - | - |
+| 🌟 | X |`;
+
+    const result = fixTableAlignment(content);
+    // Table after code block should be processed
+    expect(result).toContain(IDEOGRAPHIC_SPACE);
+  });
 });
 
 describe("isMarkdownFile", () => {
