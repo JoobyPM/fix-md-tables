@@ -27,7 +27,7 @@ Renders misaligned:
 Add ideographic spaces (U+3000) to cells with fewer emoji. Ideographic spaces also display as 2 columns, compensating for the width difference:
 
 ```markdown
-| Status　 | Description　  | Comments　 |
+| Status　 | Description　  | Comments   |
 | -------- | -------------- | ---------- |
 | ✅       | ✅ Complete    | ❌         |
 | 🚧       | 🚧 In Progress | ⚠️         |
@@ -134,9 +134,9 @@ Main function to fix table alignment in markdown content.
 
 Count emoji characters in a string.
 
-### `stripIdeographicSpaces(str: string): string`
+### `normalizeIdeographicSpaces(str: string): string`
 
-Remove all ideographic spaces from a string.
+Replace all ideographic spaces with 2 regular spaces (same visual width).
 
 ### `processTable(tableRows: string[]): string[]`
 
