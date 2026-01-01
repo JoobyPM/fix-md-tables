@@ -1,6 +1,6 @@
 {
   "name": "fix-md-tables",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Fix markdown table alignment for emoji using ideographic spaces",
   "type": "module",
   "bin": {
@@ -20,7 +20,12 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "changelog": "changelogen --output CHANGELOG.md",
+    "release": "pnpm run check && changelogen --release && git push --follow-tags",
+    "release:patch": "pnpm run check && changelogen --release --patch && git push --follow-tags",
+    "release:minor": "pnpm run check && changelogen --release --minor && git push --follow-tags",
+    "release:major": "pnpm run check && changelogen --release --major && git push --follow-tags"
   },
   "keywords": [
     "markdown",
@@ -34,13 +39,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourname/fix-md-tables"
+    "url": "https://github.com/joobypm/fix-md-tables"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "changelogen": "^0.6.2",
     "eslint": "^9.39.2",
     "globals": "^16.5.0",
     "prettier": "^3.4.2",
