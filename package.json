@@ -1,0 +1,42 @@
+{
+  "name": "fix-md-tables",
+  "version": "1.0.0",
+  "description": "Fix markdown table alignment for emoji using ideographic spaces",
+  "type": "module",
+  "bin": {
+    "fix-md-tables": "./bin/fix-md-tables.mjs"
+  },
+  "main": "./lib/index.mjs",
+  "exports": {
+    ".": "./lib/index.mjs"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "scripts": {
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "markdown",
+    "table",
+    "emoji",
+    "alignment",
+    "prettier",
+    "formatter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourname/fix-md-tables"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  },
+  "packageManager": "pnpm@9.15.4"
+}
+
