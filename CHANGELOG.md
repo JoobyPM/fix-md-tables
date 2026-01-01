@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.1
+
+[compare changes](https://github.com/JoobyPM/fix-md-tables/compare/v1.1.0...v1.1.1)
+
+### 🩹 Fixes
+
+- Maintain column width when adding ideographic spaces ([29837ab](https://github.com/JoobyPM/fix-md-tables/commit/29837ab))
+
+### ❤️ Contributors
+
+- Pavel Marakhovskyy
+
 ## v1.1.0
 
 [compare changes](https://github.com/joobypm/fix-md-tables/compare/v1.0.0...v1.1.0)
