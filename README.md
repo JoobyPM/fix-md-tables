@@ -27,10 +27,10 @@ Renders misaligned:
 Add ideographic spaces (U+3000) to cells with fewer emoji. Ideographic spaces also display as 2 columns, compensating for the width difference:
 
 ```markdown
-| Status　 | Description　  | Comments   |
-| -------- | -------------- | ---------- |
-| ✅       | ✅ Complete    | ❌         |
-| 🚧       | 🚧 In Progress | ⚠️         |
+| Status　 | Description　  | Comments |
+| -------- | -------------- | -------- |
+| ✅       | ✅ Complete    | ❌       |
+| 🚧       | 🚧 In Progress | ⚠️       |
 ```
 
 Now renders aligned:
@@ -71,9 +71,30 @@ fix-md-tables
 # Process specific files
 fix-md-tables README.md docs/guide.mdx
 
+# Clean mode: remove ideographic spaces (run BEFORE Prettier)
+fix-md-tables --clean
+
 # Via npx
 npx fix-md-tables
+npx fix-md-tables --clean
 ```
+
+### Recommended Workflow
+
+If you need to re-format tables with Prettier, use this workflow:
+
+```bash
+# 1. Clean ideographic spaces first (prevents Prettier from breaking alignment)
+npx fix-md-tables --clean
+
+# 2. Run Prettier to format tables
+npx prettier --write "**/*.md"
+
+# 3. Re-add ideographic spaces for proper alignment
+npx fix-md-tables
+```
+
+**Why?** Prettier doesn't understand ideographic spaces, so formatting a table that already has them creates misalignment. The `--clean` flag normalizes them to regular spaces first.
 
 ### Programmatic
 
@@ -129,6 +150,10 @@ docs-format:
 ### `fixTableAlignment(content: string): string`
 
 Main function to fix table alignment in markdown content.
+
+### `cleanTableAlignment(content: string): string`
+
+Remove ideographic spaces from tables (run before Prettier).
 
 ### `countEmoji(str: string): number`
 

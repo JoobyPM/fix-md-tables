@@ -14,6 +14,7 @@ import {
   buildTableRow,
   processTable,
   fixTableAlignment,
+  cleanTableAlignment,
   isMarkdownFile,
 } from "../lib/index.mjs";
 
@@ -302,6 +303,39 @@ describe("isMarkdownFile", () => {
   it("rejects non-markdown files", () => {
     expect(isMarkdownFile("script.js")).toBe(false);
     expect(isMarkdownFile("data.json")).toBe(false);
+  });
+});
+
+describe("cleanTableAlignment", () => {
+  it("removes ideographic spaces from tables", () => {
+    const input = `| Header${IDEOGRAPHIC_SPACE}| Header |
+| ---${IDEOGRAPHIC_SPACE}| --- |
+| 🌟 | Text |`;
+
+    const result = cleanTableAlignment(input);
+    expect(result).not.toContain(IDEOGRAPHIC_SPACE);
+    // 1 ideographic space replaced with 2 regular spaces
+    expect(result).toContain("| Header  | Header |");
+  });
+
+  it("skips tables inside code blocks", () => {
+    const input = `\`\`\`
+| Header${IDEOGRAPHIC_SPACE} |
+\`\`\``;
+
+    const result = cleanTableAlignment(input);
+    // Should preserve ideographic space inside code block
+    expect(result).toContain(IDEOGRAPHIC_SPACE);
+  });
+
+  it("preserves non-table content", () => {
+    const input = `# Title
+
+Some paragraph with ${IDEOGRAPHIC_SPACE} space.`;
+
+    const result = cleanTableAlignment(input);
+    // Non-table ideographic spaces are preserved
+    expect(result).toBe(input);
   });
 });
 
