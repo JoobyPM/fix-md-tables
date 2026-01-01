@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.1.0
+
+[compare changes](https://github.com/joobypm/fix-md-tables/compare/v1.0.0...v1.1.0)
+
+### 🚀 Enhancements
+
+- Add changelog generation and release scripts ([a2aeae7](https://github.com/joobypm/fix-md-tables/commit/a2aeae7))
+
+### 🤖 CI
+
+- Add GitHub Actions CI workflow ([8d92e72](https://github.com/joobypm/fix-md-tables/commit/8d92e72))
+- Add GitHub Actions release workflow ([3247577](https://github.com/joobypm/fix-md-tables/commit/3247577))
+
+### ❤️ Contributors
+
+- Pavel Marakhovskyy <pm@infomir.com>
 
 ## v1.0.0
 
