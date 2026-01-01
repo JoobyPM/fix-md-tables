@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   IDEOGRAPHIC_SPACE,
   countEmoji,
-  stripIdeographicSpaces,
+  normalizeIdeographicSpaces,
   isTableSeparatorLine,
   isTableRow,
   parseTableRow,
@@ -32,14 +32,14 @@ describe("countEmoji", () => {
   });
 });
 
-describe("stripIdeographicSpaces", () => {
-  it("removes ideographic spaces", () => {
-    expect(stripIdeographicSpaces(`Hello${IDEOGRAPHIC_SPACE}World`)).toBe("HelloWorld");
-    expect(stripIdeographicSpaces(`${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}`)).toBe("");
+describe("normalizeIdeographicSpaces", () => {
+  it("replaces ideographic spaces with 2 regular spaces", () => {
+    expect(normalizeIdeographicSpaces(`Hello${IDEOGRAPHIC_SPACE}World`)).toBe("Hello  World");
+    expect(normalizeIdeographicSpaces(`${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}`)).toBe("    ");
   });
 
   it("leaves regular spaces intact", () => {
-    expect(stripIdeographicSpaces("Hello World")).toBe("Hello World");
+    expect(normalizeIdeographicSpaces("Hello World")).toBe("Hello World");
   });
 });
 
@@ -104,14 +104,14 @@ describe("calculateMaxEmojiPerColumn", () => {
 });
 
 describe("compensateSeparatorCell", () => {
-  it("removes dashes and adds ideographic spaces", () => {
-    const result = compensateSeparatorCell(" ------- ", 2);
+  it("removes dashes, trailing spaces and adds ideographic spaces", () => {
+    const result = compensateSeparatorCell(" -------     ", 2);
     expect(result).toBe(` ---${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE} `);
   });
 
   it("preserves alignment colons", () => {
-    const result = compensateSeparatorCell(" :---: ", 1);
-    expect(result).toBe(` :-${IDEOGRAPHIC_SPACE}: `);
+    const result = compensateSeparatorCell(" :-----:   ", 1);
+    expect(result).toBe(` :---${IDEOGRAPHIC_SPACE}: `);
   });
 
   it("returns cell unchanged if not a separator", () => {
@@ -157,7 +157,7 @@ describe("processCell", () => {
 
   it("handles separator rows differently", () => {
     const maxEmojiPerCol = [1];
-    const result = processCell(" --- ", 0, true, maxEmojiPerCol);
+    const result = processCell(" ---   ", 0, true, maxEmojiPerCol);
     expect(result).toBe(` -${IDEOGRAPHIC_SPACE} `);
   });
 });
@@ -175,7 +175,7 @@ describe("processTable", () => {
 
     // compensation=1, removes 2 trailing spaces, only 1 exists, so none left
     expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE}| Header |`);
-    expect(result[1]).toBe(`| -${IDEOGRAPHIC_SPACE} | --- |`);
+    expect(result[1]).toBe(`| -${IDEOGRAPHIC_SPACE}| --- |`);
     expect(result[2]).toBe("| 🌟 | Text |");
   });
 
@@ -185,12 +185,12 @@ describe("processTable", () => {
     expect(result).toEqual(tableRows);
   });
 
-  it("strips existing ideographic spaces before processing", () => {
+  it("normalizes existing ideographic spaces before processing", () => {
     const tableRows = [`| Header${IDEOGRAPHIC_SPACE} | Header |`, "| --- | --- |", "| 🌟 | Text |"];
     const result = processTable(tableRows);
 
-    // Should be re-processed cleanly (after stripping, same as above)
-    expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE}| Header |`);
+    // Should be re-processed cleanly (after normalizing to 2 spaces, then re-compensating)
+    expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE} | Header |`);
   });
 });
 
