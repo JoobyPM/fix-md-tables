@@ -37,7 +37,7 @@ Now renders aligned:
 
 ```
 | Status　 | Description　    | Comments　 |
-| ------　 | --------------　 | --------　 |
+| ------   | --------------   | --------   |
 | ✅       | ✅ Complete      | ❌         |
 | 🚧       | 🚧 In Progress   | ⚠️         |
 ```
@@ -178,6 +178,7 @@ CLI runner. Returns count of fixed files.
 - U+2700-U+27BF (Dingbats)
 - U+231A-U+23FA (Miscellaneous Technical)
 - U+2B50-U+2B55 (Miscellaneous Symbols and Arrows)
+- U+2100-U+214F (Letterlike Symbols: ℹ️, ™️, etc.)
 
 ## File Types
 
