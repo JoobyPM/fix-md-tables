@@ -174,6 +174,7 @@ CLI runner. Returns count of fixed files.
 ## Supported Emoji Ranges
 
 - U+1F300-U+1F9FF (Miscellaneous Symbols and Pictographs, Emoticons, etc.)
+- U+1FA70-U+1FAFF (Symbols and Pictographs Extended-A: 🥷, 🫠, 🪿, etc.)
 - U+2600-U+26FF (Miscellaneous Symbols)
 - U+2700-U+27BF (Dingbats)
 - U+231A-U+23FA (Miscellaneous Technical)
