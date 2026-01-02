@@ -142,8 +142,8 @@ docs-format:
 2. For each table, calculates max emoji count per column (from data rows only)
 3. Adds ideographic spaces to compensate:
    - Header cells: adds spaces after text
-   - Separator cells: removes dashes, adds ideographic spaces
    - Data cells with fewer emoji: adds compensating spaces
+   - Separator cells (`| --- |`): unchanged (must remain valid markdown)
 
 ## API
 

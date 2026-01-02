@@ -105,18 +105,16 @@ describe("calculateMaxEmojiPerColumn", () => {
 });
 
 describe("compensateSeparatorCell", () => {
-  it("removes dashes, trailing spaces and adds ideographic spaces", () => {
-    const result = compensateSeparatorCell(" -------     ", 2);
-    expect(result).toBe(` ---${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE} `);
+  it("returns cell unchanged to preserve valid markdown syntax", () => {
+    // Separator cells must only contain dashes, colons, and spaces
+    // Adding ideographic spaces would break markdown table rendering
+    const result = compensateSeparatorCell(" -------     ");
+    expect(result).toBe(" -------     ");
   });
 
-  it("preserves alignment colons", () => {
-    const result = compensateSeparatorCell(" :-----:   ", 1);
-    expect(result).toBe(` :---${IDEOGRAPHIC_SPACE}: `);
-  });
-
-  it("returns cell unchanged if not a separator", () => {
-    expect(compensateSeparatorCell(" Text ", 1)).toBe(" Text ");
+  it("preserves alignment colons unchanged", () => {
+    const result = compensateSeparatorCell(" :-----:   ");
+    expect(result).toBe(" :-----:   ");
   });
 });
 
@@ -157,16 +155,19 @@ describe("processCell", () => {
     expect(result).toBe(` Text${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}${IDEOGRAPHIC_SPACE}`);
   });
 
-  it("leaves cells with max emoji unchanged", () => {
+  it("adds base compensation even to max emoji cells", () => {
     const maxEmojiPerCol = [2, 1];
+    // Max emoji = 2, cell has 2 emoji, but still gets base compensation
+    // Formula: base=min(2,1)=1, comp=1+2-2=1
     const result = processCell(" 🌟🎉 ", 0, false, maxEmojiPerCol);
-    expect(result).toBe(" 🌟🎉 ");
+    expect(result).toBe(` 🌟🎉${IDEOGRAPHIC_SPACE}`);
   });
 
-  it("handles separator rows differently", () => {
+  it("leaves separator rows unchanged to preserve valid markdown", () => {
     const maxEmojiPerCol = [1];
     const result = processCell(" ---   ", 0, true, maxEmojiPerCol);
-    expect(result).toBe(` -${IDEOGRAPHIC_SPACE} `);
+    // Separator rows must not be modified - ideographic spaces break markdown
+    expect(result).toBe(" ---   ");
   });
 });
 
@@ -184,7 +185,8 @@ describe("processTable", () => {
 
     // Col 0: max emoji=1, header needs 1 compensation, 3 trailing spaces → 1 ideographic
     expect(result[0]).toBe(`| Header${IDEOGRAPHIC_SPACE} | Header |`);
-    expect(result[1]).toBe(`| -${IDEOGRAPHIC_SPACE} | --- |`);
+    // Separator row stays unchanged - ideographic spaces would break markdown
+    expect(result[1]).toBe("| ---   | --- |");
     expect(result[2]).toBe("| 🌟 | Text |");
   });
 
@@ -431,8 +433,9 @@ describe("integration: real-world table", () => {
     // Expected: compensation = base + (max - cell), where base = min(2, max - 1)
     // - Status column (max=1): header gets 1 ideographic space
     // - Conversion column (max=5): 0-emoji cells get 4, 1-emoji get 6, 5-emoji get 2
+    // - Separator row: unchanged (must remain valid markdown)
     const expected = `| Macro               | Status　      | Conversion　　　　                            |
-| ------------------- | -----------　| -------------------------------------　　　　|
+| ------------------- | ------------- | --------------------------------------------- |
 | **"info"**          | ✅ Supported  | Blockquote with ℹ️ Info prefix　　　　　　    |
 | **"warning"**       | ✅ Supported  | Blockquote with ⚠️ Warning prefix　　　　　　 |
 | **"note"**          | ✅ Supported  | Blockquote with 📝 Note prefix　　　　　　    |
