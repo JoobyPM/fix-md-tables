@@ -15,7 +15,7 @@ Emoji display as 2 columns in terminals but count as 1 character. When Prettier 
 
 Renders misaligned:
 
-```
+```text
 | Status | Description    | Comments |
 | ------ | -------------- | -------- |
 | ✅     | ✅ Complete    | ❌       |  ← emoji takes 2 cols but counts as 1 char
@@ -35,7 +35,7 @@ Add ideographic spaces (U+3000) to cells with fewer emoji. Ideographic spaces al
 
 Now renders aligned:
 
-```
+```text
 | Status　 | Description　    | Comments　 |
 | ------   | --------------   | --------   |
 | ✅       | ✅ Complete      | ❌         |
