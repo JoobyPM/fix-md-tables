@@ -15,7 +15,7 @@ Emoji display as 2 columns in terminals but count as 1 character. When Prettier 
 
 Renders misaligned:
 
-```
+```text
 | Status | Description    | Comments |
 | ------ | -------------- | -------- |
 | ✅     | ✅ Complete    | ❌       |  ← emoji takes 2 cols but counts as 1 char
@@ -27,17 +27,17 @@ Renders misaligned:
 Add ideographic spaces (U+3000) to cells with fewer emoji. Ideographic spaces also display as 2 columns, compensating for the width difference:
 
 ```markdown
-| Status　 | Description　  | Comments   |
-| -------- | -------------- | ---------- |
-| ✅       | ✅ Complete    | ❌         |
-| 🚧       | 🚧 In Progress | ⚠️         |
+| Status　 | Description　  | Comments |
+| -------- | -------------- | -------- |
+| ✅       | ✅ Complete    | ❌       |
+| 🚧       | 🚧 In Progress | ⚠️       |
 ```
 
 Now renders aligned:
 
-```
+```text
 | Status　 | Description　    | Comments　 |
-| ------　 | --------------　 | --------　 |
+| ------   | --------------   | --------   |
 | ✅       | ✅ Complete      | ❌         |
 | 🚧       | 🚧 In Progress   | ⚠️         |
 ```
@@ -71,9 +71,30 @@ fix-md-tables
 # Process specific files
 fix-md-tables README.md docs/guide.mdx
 
+# Clean mode: remove ideographic spaces (run BEFORE Prettier)
+fix-md-tables --clean
+
 # Via npx
 npx fix-md-tables
+npx fix-md-tables --clean
 ```
+
+### Recommended Workflow
+
+If you need to re-format tables with Prettier, use this workflow:
+
+```bash
+# 1. Clean ideographic spaces first (prevents Prettier from breaking alignment)
+npx fix-md-tables --clean
+
+# 2. Run Prettier to format tables
+npx prettier --write "**/*.md"
+
+# 3. Re-add ideographic spaces for proper alignment
+npx fix-md-tables
+```
+
+**Why?** Prettier doesn't understand ideographic spaces, so formatting a table that already has them creates misalignment. The `--clean` flag normalizes them to regular spaces first.
 
 ### Programmatic
 
@@ -121,14 +142,18 @@ docs-format:
 2. For each table, calculates max emoji count per column (from data rows only)
 3. Adds ideographic spaces to compensate:
    - Header cells: adds spaces after text
-   - Separator cells: removes dashes, adds ideographic spaces
    - Data cells with fewer emoji: adds compensating spaces
+   - Separator cells (`| --- |`): unchanged (must remain valid markdown)
 
 ## API
 
 ### `fixTableAlignment(content: string): string`
 
 Main function to fix table alignment in markdown content.
+
+### `cleanTableAlignment(content: string): string`
+
+Remove ideographic spaces from tables (run before Prettier).
 
 ### `countEmoji(str: string): number`
 
@@ -149,10 +174,12 @@ CLI runner. Returns count of fixed files.
 ## Supported Emoji Ranges
 
 - U+1F300-U+1F9FF (Miscellaneous Symbols and Pictographs, Emoticons, etc.)
+- U+1FA70-U+1FAFF (Symbols and Pictographs Extended-A: 🥷, 🫠, 🪿, etc.)
 - U+2600-U+26FF (Miscellaneous Symbols)
 - U+2700-U+27BF (Dingbats)
 - U+231A-U+23FA (Miscellaneous Technical)
 - U+2B50-U+2B55 (Miscellaneous Symbols and Arrows)
+- U+2100-U+214F (Letterlike Symbols: ℹ️, ™️, etc.)
 
 ## File Types
 

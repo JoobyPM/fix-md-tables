@@ -1,0 +1,158 @@
+---
+description: Development workflow for fix-md-tables
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# fix-md-tables Development Workflow
+
+## Before ANY Commit
+
+**ALWAYS run before committing:**
+
+```bash
+pnpm run check
+```
+
+This runs: `format` → `lint` → `test`
+
+## Feature/Fix Workflow
+
+### 1. Create Branch
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b <type>/<short-description>
+```
+
+Branch naming:
+- `feat/` - new features
+- `fix/` - bug fixes
+- `docs/` - documentation only
+- `refactor/` - code refactoring
+
+### 2. Make Code Changes
+
+- Write clean, documented code
+- Follow existing code style
+- Add JSDoc comments for exported functions
+
+### 3. Write/Update Tests
+
+- All new functions must have tests
+- Update existing tests if behavior changes
+- Run `pnpm run test` frequently during development
+
+### 4. Pre-commit Checklist
+
+```bash
+# MANDATORY before every commit
+pnpm run check
+```
+
+If any step fails, fix the issues before committing.
+
+### 5. Commit Changes
+
+Use conventional commits:
+
+```bash
+git add -A
+git commit -m "<type>: <description>"
+```
+
+Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+
+### 6. Push & Create PR
+
+```bash
+git push -u origin <branch-name>
+gh pr create --title "<type>: <description>" --body "<description>"
+```
+
+PR body should include:
+- **Problem**: What issue does this solve?
+- **Solution**: How does it solve it?
+- **Changes**: List of key changes
+
+### 7. Wait for CodeRabbit Review (5-10 minutes)
+
+After creating PR, wait for automated review.
+
+### 8. Check PR Comments
+
+```bash
+gh pr view <pr-number> --comments
+```
+
+Review all comments and suggestions from CodeRabbit.
+
+### 9. Apply Improvements
+
+If there are actionable suggestions:
+
+1. Make the fixes locally
+2. Run `pnpm run check`
+3. Commit and push:
+
+```bash
+git add -A
+git commit -m "fix: <what was fixed>"
+git push
+```
+
+4. Wait for follow-up review
+
+### 10. Merge PR
+
+Once approved and all checks pass:
+
+```bash
+# Via GitHub UI or CLI
+gh pr merge <pr-number> --merge
+```
+
+### 11. Release
+
+```bash
+git checkout main
+git pull origin main
+
+# For bug fixes
+pnpm run release:patch
+
+# For new features
+pnpm run release:minor
+
+# For breaking changes
+pnpm run release:major
+```
+
+## Quick Reference Commands
+
+```bash
+# Development
+pnpm run test        # Run tests
+pnpm run test:watch  # Watch mode
+pnpm run lint        # Check linting
+pnpm run lint:fix    # Fix lint issues
+pnpm run format      # Format code
+pnpm run check       # All checks (format + lint + test)
+
+# Git workflow
+gh pr create         # Create PR
+gh pr view --comments # Check PR comments
+gh pr merge          # Merge PR
+
+# Release
+pnpm run release:patch  # v1.0.0 → v1.0.1
+pnpm run release:minor  # v1.0.0 → v1.1.0
+pnpm run release:major  # v1.0.0 → v2.0.0
+```
+
+## SonarQube Guidelines
+
+- Keep cognitive complexity ≤ 15 per function
+- Extract helper functions to reduce complexity
+- Maintain 100% docstring coverage for exported functions

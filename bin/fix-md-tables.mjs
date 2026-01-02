@@ -2,8 +2,9 @@
 /**
  * CLI entry point for fix-md-tables
  *
- * Usage: fix-md-tables [file.md|file.mdx...]
+ * Usage: fix-md-tables [--clean] [file.md|file.mdx...]
  *        npx fix-md-tables
+ *        npx fix-md-tables --clean  # Remove ideographic spaces (run before Prettier)
  *        bunx fix-md-tables
  */
 
